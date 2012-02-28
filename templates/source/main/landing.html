@@ -1,0 +1,469 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <!-- Meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="Visualizations of BSD's Harvest data using D3.js">
+    <meta name="author" content="Sam Gammon <sgammon@bluestatedigital.com>">
+    <meta name="viewport" content="width=device-width">
+
+    <!-- Title -->
+    <title>BSD Harvest Experiments</title>
+
+    <!-- Styles -->
+    <style>@import url(http://fonts.googleapis.com/css?family=Satisfy);</style>
+    <style>@import url(http://fonts.googleapis.com/css?family=Cabin);</style>
+    <link rel="stylesheet" href="/assets/style/static/compiled/style.css">
+</head>
+
+<body>
+
+    <script>
+        var _deferred_init = [];
+        function defer(fn, args)
+        {
+            _deferred_init.push({callback: fn, args: args});
+        }
+    </script>
+    <style>
+        rect {
+          fill: none;
+          stroke: #fff;
+        }
+
+        text {
+          font: 10px sans-serif;
+        }
+    </style>
+
+    <!-- Templates -->
+    <div id='js-templates' class='hidden resource'>
+    </div>
+
+    <!-- Header -->
+    <div id="header-container">
+        <header id='topheader' class="wrapper clearfix">
+            <h1 id="title">Harvest Experiments</h1>
+            <nav id='topnavigation'>
+                <ul>
+                    <li><a href="javascript:changeNav()">dashboard</a></li>
+                    <li><a href="#">projects</a></li>
+                    <li><a href="#">employees</a></li>
+                    <li><a href="#">budgets</a></li>
+                </ul>
+            </nav>
+        </header>
+        <div id='menuslide' data-state='closed'>
+            <a href="javascript:toogleNavVisible();">
+                <img id='arrowdown' src='/assets/img/static/sprites/arrowdown.png' alt='open navigation' />
+                <img id='arrowup' src='/assets/img/static/sprites/arrowup.png' class='hidden' />
+            </a>
+        </div>
+    </div> <!-- #header-container -->
+
+
+    <!-- Main -->
+    <div id="main-container">
+        <div id="main" class="wrapper clearfix">
+
+            <div id='main-loading-box' class='blockoverlay'>
+                <p>loading</p>
+            </div>
+
+            <div id='stage' class='app resource'>
+
+                <!-- Landing Page -->
+                <div id='landing-page' class='app page' data-template='landing'>
+
+                    <div class='fullwidth'>
+
+                        <h1 class='floatleft spaceright inline'>Dashboard</h1>
+
+                        <div class='floatleft inline filterbar'>
+
+                            <form id='filters' name='filters' action='#'>
+
+                                <span class='section'>
+                                    <b>layout:</b>
+                                    <div class='config links'>
+                                        <a href='#' class='selected bubble'>treemap</a> | <a href='#'>masonry</a> | <a href='#'>calendar</a> | <a href='#'>streamgraph</a>
+                                    </div>
+                                    <select name='layout' class='hidden config dropdown'>
+                                        <option value='treemap'>treemap</option>
+                                        <option value='masonry'>masonry</option>
+                                        <option value='calendar'>calendar</option>
+                                        <option value='streamgraph'>streamgraph</option>
+                                    </select>
+                                </span>
+
+                                <span class='section'>
+                                    <b>weight by:</b> <select name='weightby'>
+
+                                        <option value='total'>total hours</option>
+                                        <option value='billable'>billable hours</option>
+                                        <option value='budget'>budget target</option>
+
+                                    </select>
+                                </span>
+
+                                <span class='section'>
+                                    <b>show clients:</b> <select name='clients'>
+                                        <option value='all'>all clients</option>
+                                        <option value='strategy'>strategy</option>
+                                        <option value='tech'>technology</option>
+                                        <option value='bizdev'>biz dev</option>
+                                    </select>
+                                </span>
+
+                                <span class='section'>
+                                    <b>export:</b>
+                                    <div class='config links'>
+                                        <a href='#'>image</a> | <a href='#'>csv</a> | <a href='#'>pdf</a>
+                                    </div>
+                                    <select name='export' class='hidden config dropdown'>
+                                        <option value='__select__'>(select format)</option>
+                                        <option value='image'>image</option>
+                                        <option value='csv'>csv</option>
+                                        <option value='pdf'>pdf</option>
+                                    </select>
+                                </span>
+
+                                <span class='section'>
+                                    <input type='submit' value='refresh' />
+                                </span>
+
+                            </form>
+
+                        </div>
+
+                        <div class='clearboth'></div>
+
+
+                    </div>
+
+                    <div class='columns'>
+                        <!-- Projects Column -->
+                        <div id='landing-projects-column' class='absolute inline snapleft snaptop snapbottom almosthalfwidth'>
+
+                            <div id='project-summary-treemap' data-type='d3viz' class='fullwidth fullheight'>
+                            </div>
+
+                            <div id='project-summary-masonry' data-type='d3viz' class='hidden fullwidth fullheight'>
+                                <img src='http://placehold.it/450x575&text=Project%20Masonry' alt='Project Masonry' />
+                            </div>
+
+                            <div id='project-summary-calendar' data-type='d3viz' class='hidden fullwidth fullheight'>
+                                <img src='http://placehold.it/450x575&text=Project%20Calendar' alt='Project Calendar' />
+                            </div>
+
+                            <div id='project-summary-streamgraph' data-type='d3viz' class='hidden fullwidth fullheight'>
+                                <img src='http://placehold.it/450x575&text=Project%20Streamgraph' alt='Project Streamgraph' />
+                            </div>
+
+                        </div>
+
+
+                        <!-- Employees Column -->
+                        <div id='landing-employees-column' class='absolute inline snapright snaptop snapbottom almosthalfwidth'>
+
+                            <div id='employee-summary-treemap' data-type='d3viz' class='fullwidth fullheight'>
+                            </div>
+
+                            <div id='employee-summary-masonry' data-type='d3viz' class='hidden fullwidth fullheight'>
+                                <img src='http://placehold.it/450x575&text=Employee%20Masonry' alt='Employee Masonry' />
+                            </div>
+
+                            <div id='employee-summary-calendar' data-type='d3viz' class='hidden fullwidth fullheight'>
+                                <img src='http://placehold.it/450x575&text=Employee%20Calendar' alt='Employee Calendar' />
+                            </div>
+
+                            <div id='employee-summary-streamgraph' data-type='d3viz' class='hidden fullwidth fullheight'>
+                                <img src='http://placehold.it/450x575&text=Employee%20Streamgraph' alt='Employee Streamgraph' />
+                            </div>
+
+                        </div>
+                    </div>
+
+
+
+                    <div class='clearboth'></div>
+
+
+                    <!-- Timeline -->
+                    <div id='landing-timeline' class='fullwidth inline absolute snapbottom'>
+                        <img src='http://placehold.it/900x80&text=Timeline' alt='Timeline' />
+                    </div>
+
+
+                </div>
+
+                <!-- Projects Summary -->
+                <div id='projects-page' class='hidden unrendered app page' data-template='projects'>
+                </div>
+
+                <!-- Employees Summary -->
+                <div id='employees-page' class='hidden unrendered app page' data-template='employees'>
+                </div>
+
+                <!-- Budgets Summary -->
+                <div id='budgets-page' class='hidden unrendered app page' data-template='budgets'>
+                </div>
+
+                <!-- Raw Data -->
+                <div id='rawdata-page' class='hidden unrendered app page' data-template='rawdata'>
+                </div>
+
+            </div> <!-- #stage -->
+
+        </div> <!-- #main -->
+    </div> <!-- #main-container -->
+
+    <!-- Footer -->
+    <div id="footer-container">
+        <footer class="wrapper">
+            <h3>beta experiments - internal use only</h3>
+
+            <div id='logobox'>
+                <div id='loadingbox' class='hidden'>
+                    <img id='indeterminate_loading' src='/assets/img/static/sprites/loading.gif' alt='loading...' />
+                    <div id='determinate_loading' class='hidden'>
+                    </div>
+                </div>
+                <img src="/assets/img/static/logos/bsd.png" alt='blue state digital' />
+            </div>
+        </footer>
+    </div> <!-- #footer-container -->
+
+    <!-- Base Scripts -->
+    <script src="/assets/js/static/core/underscore.min.js"></script>
+    <script src="/assets/js/static/core/modernizr.min.js"></script>
+    <script src="/assets/js/static/core/jquery.min.js"></script>
+    <script src="/assets/js/static/core/respond.min.js"></script>
+    <script src="/assets/js/static/core/backbone.min.js"></script>
+    <script src="/assets/js/static/core/mustache.min.js"></script>
+    <script src="/assets/js/static/utils.js"></script>
+
+    <!-- D3 -->
+    <script src="/assets/js/static/d3/d3.min.js"></script>
+    <script src="/assets/js/static/d3/d3.layout.min.js"></script>
+    <script src="/assets/js/static/d3/d3.geom.min.js"></script>
+    <script src="/assets/js/static/d3/d3.geo.min.js"></script>
+    <script src="/assets/js/static/d3/d3.time.min.js"></script>
+    <script src="/assets/js/static/d3/d3.csv.min.js"></script>
+    <script src="/assets/js/static/d3/d3.chart.min.js"></script>
+
+    <!-- D3 Viz App Code -->
+    <script src="/assets/js/static/compiled/d3viz.js"></script>
+
+    <!-- Demo Data -->
+    <script src="/assets/ext/static/data/ex/flare.js"></script>
+
+    <script>
+
+        function make_treemap(el, data_type, data_transform, data, label)
+        {
+
+            console.log('Making project summary treemap.');
+            var w = $(el).width(),
+                h = $(el).height(),
+                color = d3.scale.category20c();
+
+            var treemap = d3.layout.treemap()
+                .size([w+1, h+1])
+                .children(function (d) {return isNaN(d.value) ? d3.entries(d.value) : null;})
+                .value(function (d) {return d.value;})
+                .sticky(true);
+
+            console.log('Treemap object: ', treemap);
+
+            var svg = d3.select(el).append("svg:svg")
+                    .style("width", w)
+                    .style("height", h)
+                .append("svg:g")
+                    .attr("transform", "translate(-.5, -.5)");
+
+            console.log('SVG Element: ', svg);
+
+            if (data_type == 'csv')
+            {
+                get_data = d3.csv;
+            }
+            else
+            {
+                get_data = d3.json;
+            }
+
+            get_data(data, function (response) {
+
+                if (data_transform != null)
+                {
+                    response = data_transform(response);
+                }
+
+                console.log('Data Result: ', response);
+                var cell = svg.data(d3.entries(response)).selectAll("g")
+                        .data(treemap)
+                    .enter().append("svg:g")
+                        .attr("class", "cell")
+                        .attr("transform", function (d) {return "translate(" + d.x + "," + d.y + ")";});
+
+                cell.append("svg:rect")
+                    .attr("width", function (d) {return d.dx;})
+                    .attr("height", function (d) {return d.dy;})
+                    .style("fill", function (d) {return d.children ? color(d.data.key) : null;});
+
+                cell.append("svg:text")
+                    .attr("x", function (d) {return d.dx / 2;})
+                    .attr("y", function (d) {return d.dy / 2;})
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "middle")
+                    .text(function (d) {return d.children ? null : d.data.key;});
+
+                console.log('Cell: ', cell);
+
+                svg.append("svg:g")
+                    .attr("transform", function (d) {return "translate(0," + (h-40) + ")";})
+                    .append("svg:rect")
+                        .attr("width", w)
+                        .attr("height", 50)
+                        .style("fill", "black")
+                        .attr("class", "mainlabel")
+                        .style("opacity", 0.7);
+
+                svg.append("svg:g")
+                    .attr("transform", function (d) {return "translate(0, " + (h-20) + ")";})
+                    .append("svg:text")
+                        .attr("x", 15)
+                        .attr("y", 0)
+                        .attr("width", w)
+                        .attr("height", 50)
+                        .style("font-size", "14px")
+                        .style("font-weight", "bold")
+                        .style("fill", "white")
+                        .text(label);
+
+            });
+
+            return treemap
+        }
+
+        function processBudgetDataForSpend(all_projects)
+        {
+            final_projects_list = {};
+            prefix_detect_regex = new RegExp(/\[[0-9]{0,7}\]/);
+            for (project in all_projects)
+            {
+                project = all_projects[project];
+                var label = project.Project;
+
+                if (label.search(prefix_detect_regex) != '-1')
+                {
+                    label = label.replace(label.substring(label.search(prefix_detect_regex), 9), "").trim();
+                }
+
+                project_handle = label.toLowerCase().replace(/ /gi, "-").replace(/,/gi, "-");
+
+                if (!(project.Client in final_projects_list))
+                {
+                    final_projects_list[project.Client] = {};
+                }
+
+                final_projects_list[project.Client][project_handle] = project.Spent;
+            }
+            console.log('Final Project List', final_projects_list);
+            return final_projects_list
+        }
+
+        function processBudgetDataForBudget(all_projects)
+        {
+            final_projects_list = {};
+            prefix_detect_regex = new RegExp(/\[[0-9]{0,7}\]/);
+            for (project in all_projects)
+            {
+                project = all_projects[project];
+                var label = project.Project;
+
+                if (label.search(prefix_detect_regex) != '-1')
+                {
+                    label = label.replace(label.substring(label.search(prefix_detect_regex), 9), "").trim();
+                }
+
+                project_handle = label.toLowerCase().replace(/ /gi, "-").replace(/,/gi, "-");
+
+                if (!(project.Client in final_projects_list))
+                {
+                    final_projects_list[project.Client] = {};
+                }
+
+                final_projects_list[project.Client][project_handle] = project.Budget;
+            }
+            console.log('Final Project List', final_projects_list);
+            return final_projects_list
+        }
+
+        defer(make_treemap, ["#project-summary-treemap", 'csv', processBudgetDataForSpend, "/assets/ext/static/data/budget-report.csv", "Project Spend Summary"]);
+        defer(make_treemap, ["#employee-summary-treemap", 'csv', processBudgetDataForBudget, "/assets/ext/static/data/budget-report.csv", "Project Budget Summary"]);
+    </script>
+
+    <!-- App Init -->
+    <script>
+
+        $(document).ready(function () {
+
+            window.d3viz.internal.bootstrap(window, utils);
+
+            console.log('[APP]: Beginning app init...');
+
+            window.AppWorkers = {};
+
+            // Boot up storage
+            console.log('[APP]: Loading Storage worker...');
+            if (false)
+            {
+                window.AppWorkers.storage = new SharedWorker('/assets/js/static/compiled/storage.js');
+                window.AppWorkers.storage.port.onmessage = d3viz.channels.storage.message;
+                d3viz.channels.enable(d3viz.channels.storage, window.AppWorkers.storage, window.AppWorkers.storage.port.postMessage);
+
+                console.log('[Storage]: Used SharedWorker interface.', window.AppWorkers.storage, window.AppWorkers.storage.port, d3viz.channels.storage);
+            }
+            else
+            {
+                window.AppWorkers.storage = new Worker('/assets/js/static/compiled/storage.js');
+                window.AppWorkers.storage.onmessage = d3viz.channels.storage.message;
+                d3viz.channels.enable(d3viz.channels.storage, window.AppWorkers.storage, window.AppWorkers.storage.postMessage);
+
+                console.log('[Storage]: Used Worker interface.', window.AppWorkers.storage, window.AppWorkers.storage.postMessage, d3viz.channels.storage);
+            }
+
+            // Boot up render
+            console.log('[APP]: Loading Render worker...');
+            window.AppWorkers.render = new Worker('/assets/js/static/compiled/render.js');
+            window.AppWorkers.render.onmessage = d3viz.channels.render.message;
+            d3viz.channels.enable(d3viz.channels.render, window.AppWorkers.render, window.AppWorkers.render.postMessage);
+
+            console.log('[Render]: Engine activated.', window.AppWorkers.render, window.AppWorkers.render.postMessage, d3viz.channels.render);
+
+            // Boot up csvparser
+            console.log('[APP]: Loading CSVParser worker...');
+            window.AppWorkers.csvparser = new Worker('/assets/js/static/compiled/csvparser.js');
+            window.AppWorkers.csvparser.onmessage = d3viz.channels.csvparser.message;
+            d3viz.channels.enable(d3viz.channels.csvparser, window.AppWorkers.csvparser, window.AppWorkers.csvparser.postMessage);
+
+            console.log('[CSVParser]: Engine activated.', window.AppWorkers.csvparser, window.AppWorkers.csvparser.postMessage, d3viz.channels.csvparser);
+
+
+            console.log('Starting D3 viz engine...');
+
+            window.d3viz.internal.execute_deferred(_deferred_init);
+
+            console.log('Engine started.');
+
+        });
+
+    </script>
+
+
+</body>
+</html>
